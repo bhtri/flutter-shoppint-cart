@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shopping_cart/cart_bloc.dart';
+import 'package:shopping_cart/cart_page.dart';
 
 void main() {
   runApp(MyApp());
@@ -8,12 +11,15 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Shopping Cart Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return ChangeNotifierProvider<CartBloc>(
+      create: (context) => CartBloc(),
+      child: MaterialApp(
+        title: 'Flutter Shopping Cart Demo',
+        theme: ThemeData(primarySwatch: Colors.blue),
+        home: MyHomePage(
+          title: 'Gift Shop',
+        ),
       ),
-      home: MyHomePage(title: 'Gift Shop'),
     );
   }
 }
@@ -28,16 +34,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    CartBloc bloc = Provider.of<CartBloc>(context);
+    int totalCount = 0;
+    if (bloc.cart.length > 0) {
+      totalCount = bloc.cart.values.reduce((a, b) => a + b);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -48,7 +52,14 @@ class _MyHomePageState extends State<MyHomePage> {
               height: 150.0,
               width: 30.0,
               child: new GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CartPage(),
+                    ),
+                  );
+                },
                 child: new Stack(
                   children: <Widget>[
                     new IconButton(
@@ -68,7 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             right: 7,
                             child: new Center(
                               child: new Text(
-                                '$_counter',
+                                '$totalCount',
                                 style: new TextStyle(
                                     color: Colors.white,
                                     fontSize: 12.0,
@@ -93,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
           (index) {
             return GestureDetector(
               onTap: () {
-                _incrementCounter();
+                bloc.addToCart(index);
               },
               child: Container(
                 height: 200,
